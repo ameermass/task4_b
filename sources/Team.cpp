@@ -58,35 +58,56 @@ namespace ariel{
 
 
     void Team::attack(Team* other){
+        double minDist = std::numeric_limits<double>::max();
         if(other == nullptr){
             throw std::invalid_argument("Team cannot be null");
         }
         else if(!stillAlive() || !other->stillAlive()){
             throw std::runtime_error("Team is dead");
         }
+        //handle with non leader case
         else if(!leader->isAlive()){
             //Find a new leader
             for(Character* c : myTeam){
-                if(c->isAlive()){
+                double currDist = leader->distance(c);
+                if(c->isAlive() && currDist < minDist){
                     leader = c;
-                    break;
+                    minDist = currDist;
                 }
             }
         }
 
-        // continue to attack the victim who is closest to our leader
-        double minDistance = std::numeric_limits<double>::max();
+        // choose victim
+        minDist = std::numeric_limits<double>::max();
         Character* victim = nullptr;
         
         for(Character* c : other->myTeam){
             if(c->isAlive()){
                 double distance = leader->distance(c);
-                if(distance < minDistance){
-                    minDistance = distance;
+                if(distance < minDist){
+                    minDist = distance;
                     victim = c;
                 }
             }
         }
+
+        //get alive team members
+        vector<Character*> aliveMembers;
+        for(Character* c : myTeam){
+            if(c->isAlive()){
+                aliveMembers.push_back(c);
+            }
+        }
+
+        //per member: hit victim
+        for(Character* c : aliveMembers){
+            if (victim->isAlive()){
+                c->attack(victim);
+
+            }
+        
+        }
+
         
         if(victim != nullptr){
             leader->attack(victim);
